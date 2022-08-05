@@ -14,35 +14,35 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func downloadArtifacts(org string, buildIdExpression string, destinationDir string, all bool) error {
+func downloadArtifacts(org string, repo string, workflowId string, buildIdExpression string, destinationDir string, all bool) error {
 
 	if strings.HasPrefix(buildIdExpression, "pr/") {
-		pr, err := GetPr(org, "ozone", buildIdExpression[3:])
+		pr, err := GetPr(org, repo, buildIdExpression[3:])
 		if err != nil {
 			return err
 		}
 		branch := ms(pr, "head", "ref")
 
-		workflowRuns, err := GetWorkflowRunsOfBranch(org, "ozone", "8247", branch)
+		workflowRuns, err := GetWorkflowRunsOfBranch(org, repo, workflowId, branch)
 		if err != nil {
 			return err
 		}
 		id := mns(l(m(workflowRuns, "workflow_runs"))[0], "id")
-		return downloadArtifactsOfRun(org, id, destinationDir+"/"+buildIdExpression, false)
+		return downloadArtifactsOfRun(org, repo, id, destinationDir+"/"+buildIdExpression, false)
 	} else if strings.HasPrefix(buildIdExpression, "#") {
-		return downloadArtifactsOfRun(org, buildIdExpression[1:], destinationDir+"/"+buildIdExpression[1:], all)
+		return downloadArtifactsOfRun(org, repo, buildIdExpression[1:], destinationDir+"/"+buildIdExpression[1:], all)
 	} else {
-		workflowRuns, err := GetAllWorkflowRuns(org, "hadoop-ozone")
+		workflowRuns, err := GetAllWorkflowRuns(org, repo)
 
 		if err == nil {
 			for _, run := range l(m(workflowRuns, "workflow_runs")) {
 				runId := mns(run, "id")
 				if mns(run, "run_number") == buildIdExpression {
-					return downloadArtifactsOfRun(org, runId, destinationDir+"/"+runId, all)
+					return downloadArtifactsOfRun(org, repo, runId, destinationDir+"/"+runId, all)
 				}
 
 				if buildIdExpression == runId {
-					return downloadArtifactsOfRun(org, runId, destinationDir+"/"+runId, all)
+					return downloadArtifactsOfRun(org, repo, runId, destinationDir+"/"+runId, all)
 				}
 			}
 		}
@@ -53,18 +53,19 @@ func downloadArtifacts(org string, buildIdExpression string, destinationDir stri
 		" or just NUM where NUM is the index of the build")
 }
 
-func downloadArtifactsOfRun(org string, runId string, destinationDir string, all bool) error {
+func downloadArtifactsOfRun(org string, repo string, runId string, destinationDir string, all bool) error {
+	apiPath := org + "/" + repo + "/actions/runs/" + runId + "/artifacts"
 
 	apiGetter := func() ([]byte, error) {
-		return readGithubApiV3("https://api.github.com/repos/" + org + "/hadoop-ozone/actions/runs/" + runId + "/artifacts")
+		return readGithubApiV3("https://api.github.com/repos/" + apiPath)
 	}
-	artifacts, err := asJson(cachedGet3min(apiGetter, org+"-actions-runs-"+runId+"-artifacts"))
+	artifacts, err := asJson(cachedGet3min(apiGetter, toCacheKey(apiPath)))
 	if err != nil {
 		return err
 	}
 
 	results := make(map[string]interface{})
-	jobs, err := GetWorkflowRunJobs(org, "hadoop-ozone", runId)
+	jobs, err := GetWorkflowRunJobs(org, repo, runId)
 	if err != nil {
 		return err
 	}

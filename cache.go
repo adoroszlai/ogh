@@ -7,12 +7,17 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
 type getter func() ([]byte, error)
 
 type isCacheValid func(string) (bool, error)
+
+func toCacheKey(apiPath string) (string) {
+	return strings.ReplaceAll(apiPath, "/", "-")
+}
 
 //finished runs can be cached for forever
 func buildResultCache(filename string) (bool, error) {

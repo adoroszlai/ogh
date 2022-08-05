@@ -119,6 +119,16 @@ func init() {
 					Value: "apache",
 				},
 				cli.StringFlag{
+					Name:  "repo",
+					Usage: "Github repo name",
+					Value: "ozone",
+				},
+				cli.StringFlag{
+					Name:  "workflow",
+					Usage: "Id of the workflow to list the builds",
+					Value: "8247",
+				},
+				cli.StringFlag{
 					Name:  "dir",
 					Usage: "Destination dir to save the downloaded artifacts",
 					Value: "/tmp",
@@ -129,7 +139,7 @@ func init() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				return downloadArtifacts(c.String("user"), c.Args().Get(0), c.String("dir"), c.Bool("all"))
+				return downloadArtifacts(c.String("user"), c.String("repo"), c.String("workflow"), c.Args().Get(0), c.String("dir"), c.Bool("all"))
 			},
 		},
 		{
@@ -183,12 +193,34 @@ func init() {
 			Name:      "archive",
 			Usage:     "Save artifacts and build results of master builds to a specific dir.",
 			ArgsUsage: "destination directory to save the artifacts",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "user",
+					Usage: "Github user or organization name",
+					Value: "apache",
+				},
+				cli.StringFlag{
+					Name:  "repo",
+					Usage: "Github repo name",
+					Value: "ozone",
+				},
+				cli.StringFlag{
+					Name:  "workflow",
+					Usage: "Id of the workflow to list the builds",
+					Value: "8247",
+				},
+				cli.StringFlag{
+					Name:  "branch",
+					Usage: "Check the builds of this specific branch",
+					Value: "master",
+				},
+			},
 			Action: func(c *cli.Context) error {
 				dir := "/tmp"
 				if c.NArg() > 0 {
 					dir = c.Args().Get(0)
 				}
-				return archiveBuilds(dir)
+				return archiveBuilds(dir, c.String("user"), c.String("repo"), c.String("workflow"), c.String("branch"))
 			},
 		},
 		{

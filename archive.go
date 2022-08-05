@@ -12,9 +12,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func archiveBuilds(outputDir string) error {
+func archiveBuilds(outputDir string, owner string, repo string, workflow string, branch string) error {
 
-	runs, err := GetWorkflowRunsOfBranch("apache", "hadoop-ozone", "8247", "master")
+	runs, err := GetWorkflowRunsOfBranch(owner, repo, workflow, branch)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func archiveBuilds(outputDir string) error {
 			log.Print(runId + " is already downloaded but it was in-progress")
 		}
 		_ = os.MkdirAll(buildDir, 0755)
-		err = downloadArtifactsOfRun("apache", mns(run, "id"), buildDir, false)
+		err = downloadArtifactsOfRun(owner, repo, mns(run, "id"), buildDir, false)
 		if err != nil {
 			return errors.Wrap(err, "Can't download artifact of the build "+runId)
 		}
