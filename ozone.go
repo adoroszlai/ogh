@@ -4,9 +4,9 @@ import (
 	"regexp"
 )
 
-var basicRE = regexp.MustCompile(`basic \(([^)]+)\)`)
-var integrationRE = regexp.MustCompile(`integration \(([^)]+)\)`)
-var matrixRE = regexp.MustCompile(`(\w+) \(([^)]+)\)`)
+var basicRE = regexp.MustCompile(`(?:CI / )?basic \(([^)]+)\)`)
+var integrationRE = regexp.MustCompile(`(?:CI / )?integration \(([^)]+)\)`)
+var matrixRE = regexp.MustCompile(`(?:CI / )?(\w+) \(([^)]+)\)`)
 
 func JobToArtifactName(job string) string {
 	if basicRE.MatchString(job) {
