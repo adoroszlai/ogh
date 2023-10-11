@@ -4,7 +4,7 @@ import (
 	"regexp"
 )
 
-var basicRE = regexp.MustCompile(`(?:CI / )?basic \(([^)]+)\)`)
+var basicRE = regexp.MustCompile(`(?:CI / )?(?:basic|unit) \(([^)]+)\)`)
 var integrationRE = regexp.MustCompile(`(?:CI / )?integration \(([^)]+)\)`)
 var matrixRE = regexp.MustCompile(`(?:CI / )?(\w+) \(([^)]+)\)`)
 
