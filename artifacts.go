@@ -54,7 +54,7 @@ func downloadArtifacts(org string, repo string, workflowId string, buildIdExpres
 }
 
 func downloadArtifactsOfRun(org string, repo string, runId string, destinationDir string, all bool) error {
-	apiPath := org + "/" + repo + "/actions/runs/" + runId + "/artifacts"
+	apiPath := org + "/" + repo + "/actions/runs/" + runId + "/artifacts?per_page=100"
 
 	apiGetter := func() ([]byte, error) {
 		return readGithubApiV3("https://api.github.com/repos/" + apiPath)
