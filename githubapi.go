@@ -3,7 +3,7 @@ package main
 func GetWorkflowRunJobs(org string, repo string, runId string) (map[string]interface{}, error) {
 	apiPath := org + "/" + repo + "/actions/runs/" + runId + "/jobs"
 	apiGetter := func() ([]byte, error) {
-		return readGithubApiV3("https://api.github.com/repos/" + apiPath)
+		return readGithubApiV3("https://api.github.com/repos/" + apiPath + "?per_page=100")
 	}
 	return asJson(cachedGet(apiGetter, toCacheKey(apiPath), buildResultCache))
 }
@@ -11,7 +11,7 @@ func GetWorkflowRunJobs(org string, repo string, runId string) (map[string]inter
 func GetArtifacts(org string, repo string, runId string) (map[string]interface{}, error) {
 	apiPath := org + "/" + repo + "/actions/runs/" + runId + "/artifacts"
 	apiGetter := func() ([]byte, error) {
-		return readGithubApiV3("https://api.github.com/repos/" + apiPath)
+		return readGithubApiV3("https://api.github.com/repos/" + apiPath + "?per_page=100")
 	}
 	return asJson(cachedGet3min(apiGetter, toCacheKey(apiPath)))
 }
