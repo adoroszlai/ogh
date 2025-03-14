@@ -70,7 +70,10 @@ func downloadArtifactsOfRun(org string, repo string, runId string, destinationDi
 		return err
 	}
 	for _, job := range l(m(jobs, "jobs")) {
-		results[JobToArtifactName(ms(job, "name"))] = ms(job, "conclusion")
+		jobName := ms(job, "name")
+		artifactName := JobToArtifactName(jobName)
+		log.Debug().Msg("Job " + jobName + " => " + artifactName)
+		results[artifactName] = ms(job, "conclusion")
 	}
 
 	err = os.MkdirAll(destinationDir, 0755)
