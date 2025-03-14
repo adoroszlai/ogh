@@ -4,8 +4,8 @@ import (
 	"regexp"
 )
 
-var singleRE = regexp.MustCompile(`(?:.* / )*(\w+)`)
-var matrixRE = regexp.MustCompile(`(?:.* / )*(\w+) \(([^)]+)\)`)
+var singleRE = regexp.MustCompile(`(?:.* / )*(\w+)$`)
+var matrixRE = regexp.MustCompile(`(?:.* / )*(\w+) \(([^)]+)\)$`)
 
 func JobToArtifactName(job string) string {
 	if matrixRE.MatchString(job) {
