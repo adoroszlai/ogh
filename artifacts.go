@@ -119,6 +119,11 @@ func downloadAndExtract(name string, url string, destinationDir string) error {
 		}
 		defer resp.Body.Close()
 
+		// 410 Gone: Artifact has expired
+		if resp.StatusCode == 410 {
+			return nil
+		}
+
 		zipFile, err := os.Create(zipPath)
 		if err != nil {
 			return err

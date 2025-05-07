@@ -30,6 +30,10 @@ func callGithubApiV3(method string, url string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	// 410 Gone
+	if resp.StatusCode == 410 {
+		return resp, nil
+	}
 	if resp.StatusCode > 299 {
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
