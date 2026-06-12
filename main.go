@@ -336,6 +336,9 @@ func JiraNameFromGithubProject(githubProject string) string {
 	if strings.HasPrefix(strings.ToLower(githubProject), "ozone-") || strings.ToLower(githubProject) == "ozone" {
 		return "HDDS"
 	}
+	if strings.HasPrefix(strings.ToLower(githubProject), "ratis-") || strings.ToLower(githubProject) == "ratis" {
+		return "RATIS"
+	}
 	project := strings.ReplaceAll(githubProject, "incubator-", "")
 	return strings.ToUpper(project)
 }
