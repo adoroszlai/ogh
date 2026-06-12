@@ -32,7 +32,6 @@ func CloseJira(jiraId string) error {
 }
 
 // TODO set patch available
-// TODO update PR title from existing ticket (for multi-PR tickets)
 
 func OpenJira(pullRequestId string, githubProject string) error {
 	jiraProject := JiraNameFromGithubProject(githubProject)
@@ -79,15 +78,37 @@ func OpenJira(pullRequestId string, githubProject string) error {
 		}
 		//{"id":"13348103","key":"HDDS-4627","self":"https://issues.apache.org/jira/rest/api/2/issue/13348103"}
 		jiraId = jsonhelper.MS(respJson, "key")
-
 	}
+
 	if jiraId == "" {
 		return errors.New("Couldn't get or create jira Id")
 	}
+
+	return UpdatePullRequestTitle(pullRequestId, githubProject, jiraId, title)
+}
+
+func UpdatePullRequest(pullRequestId string, githubProject string, jiraId string) error {
+	jiraApi := jira.Jira{
+		Url: "https://issues.apache.org/jira",
+	}
+
+	resp, err := jiraApi.GetJira(jiraId)
+	respJson, err := jsonhelper.AsJson([]byte(resp), err)
+	if err != nil {
+		return err
+	}
+
+	title := jsonhelper.MS(respJson, "fields", "summary")
+
+	return UpdatePullRequestTitle(pullRequestId, githubProject, jiraId, title)
+}
+
+func UpdatePullRequestTitle(pullRequestId string, githubProject string, jiraId string, title string) error {
 	patch := make(map[string]string)
 	if !strings.Contains(title, jiraId) {
 		patch["title"] = jiraId + ". " + title
 	}
+	log.Debug().Msg("Update PR " + pullRequestId + " title to " + patch["title"])
 	if len(patch)>0 {
 		patchJson, err := json.Marshal(patch)
 		if err != nil {

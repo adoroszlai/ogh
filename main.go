@@ -78,19 +78,20 @@ func init() {
 			},
 		},
 		{
-			Name:    "pull-requests",
-			Aliases: []string{"pr"},
-			Usage:   "Show all the available pull requests",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "user",
-					Usage: "Github user or organization name",
-					Value: "",
+			Name:    "pr",
+			Usage:   "PR related helper methods",
+			Subcommands: []cli.Command{
+				{
+					Name:  "add-jira",
+					Usage: "Update PR with Jira issue ID",
+					Action: func(c *cli.Context) error {
+						if c.NArg() == 2 {
+							return UpdatePullRequest(c.Args().Get(0), getProject(c), c.Args().Get(1))
+						} else {
+							return errors.New("Please specify PR ID and Jira issue ID")
+						}
+					},
 				},
-			},
-			Action: func(c *cli.Context) error {
-				ref := ParseReference(c.Args().Get(0))
-				return run(true, c.String("username"), ref)
 			},
 		},
 		{
