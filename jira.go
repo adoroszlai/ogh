@@ -6,8 +6,7 @@ import (
 	"github.com/elek/go-utils/jira"
 	jsonhelper "github.com/elek/go-utils/json"
 	"github.com/pkg/errors"
-	"os"
-	"os/user"
+	"github.com/rs/zerolog/log"
 	"regexp"
 	"strings"
 )
@@ -32,16 +31,9 @@ func CloseJira(jiraId string) error {
 	return err
 }
 
-func JiraUser() (string, error) {
-	if jiraUser := os.Getenv("JIRA_USER"); jiraUser != "" {
-		return jiraUser, nil
-	}
-	user, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-	return user.Username, nil
-}
+// TODO set patch available
+// TODO update PR title from existing ticket (for multi-PR tickets)
+
 func OpenJira(pullRequestId string, githubProject string) error {
 	jiraProject := JiraNameFromGithubProject(githubProject)
 
@@ -55,32 +47,31 @@ func OpenJira(pullRequestId string, githubProject string) error {
 	}
 
 	title := jsonhelper.MS(pr, "title")
-	body := jsonhelper.MS(pr, "body")
 	pullUrl := "https://github.com/apache/" + githubProject + "/pull/" + pullRequestId
 	issuePattern, err := regexp.Compile(jiraProject + "-[0-9]+")
 	if err != nil {
 		return err
 	}
 	jiraId := issuePattern.FindString(title)
-	jiraUser, err := JiraUser()
-	if err != nil {
-		return errors.Wrap(err, "Jira user couldn't be identified")
-	}
 
 	if jiraId == "" {
+		description := title + "\n\n" + pullUrl
+		author := jsonhelper.MS(pr, "user", "login")
+		if (strings.Contains(author, "dependabot")) {
+			title = tweakDependabotTitle(title)
+		}
+
 		issue := map[string]interface{}{
 			"project": map[string]string{
 				"key": jiraProject,
 			},
 			"summary": title,
-			"assignee": map[string]string{
-				"name": jiraUser,
-			},
-			"description": "Please see: " + pullUrl,
+			"description": description,
 			"issuetype": map[string]string{
-				"name": "Improvement",
+				"name": "Task",
 			},
 		}
+		log.Debug().Msg("Creating " + jiraProject + " issue: " + title + " for PR by " + author)
 		resp, err := jiraApi.CreateJira(issue)
 		respJson, err := jsonhelper.AsJson([]byte(resp), err)
 		if err != nil {
@@ -97,9 +88,6 @@ func OpenJira(pullRequestId string, githubProject string) error {
 	if !strings.Contains(title, jiraId) {
 		patch["title"] = jiraId + ". " + title
 	}
-	if !strings.Contains(body, jiraId) {
-		patch["body"] = "JIRA: https://issues.apache.org/jira/browse/" + jiraId + "\n\n" + body
-	}
 	if len(patch)>0 {
 		patchJson, err := json.Marshal(patch)
 		if err != nil {
@@ -113,4 +101,26 @@ func OpenJira(pullRequestId string, githubProject string) error {
 	}
 
 	return nil
+}
+
+func tweakDependabotTitle(title string) string {
+	// title := strings.Replace(title, "org.slf4j:slf4j-bom", "slf4j")
+	title = strings.ReplaceAll(title, "software.amazon.awssdk:bom", "awssdk")
+
+	bomRE := regexp.MustCompile(`[^: ]+:([^ ]+)-bom`)
+	title = bomRE.ReplaceAllString(title, "$1")
+
+	propRE := regexp.MustCompile(`([^. ]+)\.version`)
+	title = propRE.ReplaceAllString(title, "$1")
+
+	groupRE := regexp.MustCompile(`Bump ([^:]+):`)
+	title = groupRE.ReplaceAllString(title, "Bump ")
+
+	fromRE := regexp.MustCompile(` from [^ ]+ `)
+	title = fromRE.ReplaceAllString(title, " ")
+
+	deleteRE := regexp.MustCompile(`(shaded\.|\.Final$)`)
+	title = deleteRE.ReplaceAllString(title, "")
+
+	return title
 }
