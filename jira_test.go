@@ -14,4 +14,5 @@ func TestTweakTitle(t *testing.T) {
 	assert.Equal(t, "Bump netty to 4.2.15", tweakDependabotTitle("Bump io.netty:netty-bom from 4.2.14.Final to 4.2.15.Final"))
 	assert.Equal(t, "Bump dropwizard to 4.2.39", tweakDependabotTitle("Bump shaded.dropwizard.version from 4.2.38 to 4.2.39"))
 	assert.Equal(t, "Bump slf4j to 2.0.18", tweakDependabotTitle("Bump org.slf4j:slf4j-bom from 2.0.17 to 2.0.18"))
+	assert.Equal(t, "Bump zstd-jni to 1.5.7-10", tweakDependabotTitle("Bump com.github.luben:zstd-jni from 1.5.7-9 to 1.5.7-10"))
 }
