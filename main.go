@@ -84,9 +84,10 @@ func init() {
 				{
 					Name:  "add-jira",
 					Usage: "Update PR with Jira issue ID",
+					ArgsUsage: "<IssueID> <PullRequestID>",
 					Action: func(c *cli.Context) error {
 						if c.NArg() == 2 {
-							return UpdatePullRequest(c.Args().Get(0), getProject(c), c.Args().Get(1))
+							return UpdatePullRequest(c.Args().Get(1), getProject(c), c.Args().Get(0))
 						} else {
 							return errors.New("Please specify PR ID and Jira issue ID")
 						}
