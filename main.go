@@ -297,7 +297,6 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Printf("%-v", err)
 		panic(err)
 	}
 

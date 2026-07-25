@@ -36,17 +36,12 @@ func CloseJira(jiraId string) error {
 func OpenJira(pullRequestId string, githubProject string) error {
 	jiraProject := JiraNameFromGithubProject(githubProject)
 
-	jiraApi := jira.Jira{
-		Url: "https://issues.apache.org/jira",
-	}
-
 	pr, err := jsonhelper.AsJson(github.ReadGithubApiV3("https://api.github.com/repos/apache/" + githubProject + "/pulls/" + pullRequestId))
 	if err != nil {
 		return err
 	}
 
 	title := jsonhelper.MS(pr, "title")
-	pullUrl := "https://github.com/apache/" + githubProject + "/pull/" + pullRequestId
 	issuePattern, err := regexp.Compile(jiraProject + "-[0-9]+")
 	if err != nil {
 		return err
@@ -54,10 +49,15 @@ func OpenJira(pullRequestId string, githubProject string) error {
 	jiraId := issuePattern.FindString(title)
 
 	if jiraId == "" {
+		pullUrl := "https://github.com/apache/" + githubProject + "/pull/" + pullRequestId
 		description := title + "\n\n" + pullUrl
 		author := jsonhelper.MS(pr, "user", "login")
 		if (strings.Contains(author, "dependabot")) {
 			title = tweakDependabotTitle(title)
+		}
+
+		jiraApi := jira.Jira{
+			Url: "https://issues.apache.org/jira",
 		}
 
 		issue := map[string]interface{}{
@@ -88,6 +88,29 @@ func OpenJira(pullRequestId string, githubProject string) error {
 }
 
 func UpdatePullRequest(pullRequestId string, githubProject string, jiraId string) error {
+	jiraProject := JiraNameFromGithubProject(githubProject)
+
+	pr, err := jsonhelper.AsJson(github.ReadGithubApiV3("https://api.github.com/repos/apache/" + githubProject + "/pulls/" + pullRequestId))
+	if err != nil {
+		return err
+	}
+
+	title := jsonhelper.MS(pr, "title")
+	issuePattern, err := regexp.Compile(jiraProject + "-[0-9]+")
+	if err != nil {
+		return err
+	}
+
+	prJiraId := issuePattern.FindString(title)
+	if prJiraId != "" {
+		return errors.New("PR " + pullRequestId + " already assigned to issue " + prJiraId)
+	}
+
+	author := jsonhelper.MS(pr, "user", "login")
+	if (strings.Contains(author, "dependabot")) {
+		title = tweakDependabotTitle(title)
+	}
+
 	jiraApi := jira.Jira{
 		Url: "https://issues.apache.org/jira",
 	}
@@ -98,7 +121,10 @@ func UpdatePullRequest(pullRequestId string, githubProject string, jiraId string
 		return err
 	}
 
-	title := jsonhelper.MS(respJson, "fields", "summary")
+	jiraTitle := jsonhelper.MS(respJson, "fields", "summary")
+	if title != jiraTitle {
+		return errors.New("Title mismatch: expected '" + jiraTitle + "', got '" + title + "'")
+	}
 
 	return UpdatePullRequestTitle(pullRequestId, githubProject, jiraId, title)
 }
