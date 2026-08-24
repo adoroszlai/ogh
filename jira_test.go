@@ -16,4 +16,5 @@ func TestTweakTitle(t *testing.T) {
 	assert.Equal(t, "Bump slf4j to 2.0.18", tweakDependabotTitle("Bump org.slf4j:slf4j-bom from 2.0.17 to 2.0.18"))
 	assert.Equal(t, "Bump zstd-jni to 1.5.7-10", tweakDependabotTitle("Bump com.github.luben:zstd-jni from 1.5.7-9 to 1.5.7-10"))
 	assert.Equal(t, "Bump @babel/plugin-transform-modules-systemjs to 7.29.4", tweakDependabotTitle("Bump @babel/plugin-transform-modules-systemjs from 7.25.9 to 7.29.4"))
+	assert.Equal(t, "Bump apache/infrastructure-actions/stash to 69afc125e535c4c41e7f1b7470f583087e0f344b", tweakDependabotTitle("Bump apache/infrastructure-actions/stash from 2245ffcb262ea1723462729b032d1d5c71290dfc to 69afc125e535c4c41e7f1b7470f583087e0f344b"))
 }
