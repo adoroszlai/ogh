@@ -166,6 +166,9 @@ func tweakDependabotTitle(title string) string {
 	fromRE := regexp.MustCompile(` from [^ ]+ `)
 	title = fromRE.ReplaceAllString(title, " ")
 
+	inRE := regexp.MustCompile(` in [^ ]+$`)
+	title = inRE.ReplaceAllString(title, "")
+
 	deleteRE := regexp.MustCompile(`(shaded\.|\.Final$)`)
 	title = deleteRE.ReplaceAllString(title, "")
 
