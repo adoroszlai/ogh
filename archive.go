@@ -19,7 +19,7 @@ func archiveBuilds(outputDir string, owner string, repo string, workflow string,
 		return err
 	}
 
-	limit := 50
+	limit := 10
 	for _, run := range l(m(runs, "workflow_runs")) {
 
 		if (ms(run,"event") == "pull_request") {
