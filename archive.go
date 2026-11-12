@@ -74,7 +74,8 @@ func archiveBuilds(outputDir string, owner string, repo string, workflow string,
 		_ = os.MkdirAll(buildDir, 0755)
 		err = downloadArtifactsOfRun(owner, repo, mns(run, "id"), buildDir, false)
 		if err != nil {
-			return errors.Wrap(err, "Can't download artifact of the build "+runId)
+			// skip failed ones instead of aborting the entire process
+			log.Print("Can't download artifact of the build "+runId)
 		}
 
 	}
